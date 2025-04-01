@@ -1,28 +1,77 @@
 <template>
-  <div id="app">
-    <h1>CRUD con Vue.js y Django</h1>
-    <div>
-      <input v-model="newItem.name" placeholder="Nombre del Ítem" />
-      <input v-model="newItem.description" placeholder="Descripción del Ítem" />
-      <button @click="addItem">Agregar Ítem</button>
+  <div class="app-container">
+    <div class="header">
+      <h1 class="title">Gestión de Ítems</h1>
+      <button class="btn btn-create" @click="showCreateForm = true">
+        <i class="fas fa-plus"></i> Agregar Ítem
+      </button>
     </div>
 
-    <h2>Lista de Ítems</h2>
-    <ul>
-      <li v-for="item in items" :key="item.id">
-        <strong>{{ item.name }}</strong>
-        <p>{{ item.description }}</p>
-        <button @click="editItem(item)">Editar</button>
-        <button @click="deleteItem(item.id)">Eliminar</button>
-      </li>
-    </ul>
+    <!-- Formulario para agregar/editar ítem -->
+    <div v-if="showCreateForm" class="form-container">
+      <div class="form-card">
+        <div class="card-header">
+          <h4>{{ isEditing ? 'Editar' : 'Agregar' }} Ítem</h4>
+        </div>
+        <div class="card-body">
+          <form @submit.prevent="saveItem">
+            <div class="form-group">
+              <label for="name">Nombre</label>
+              <input
+                v-model="currentItem.name"
+                type="text"
+                id="name"
+                class="form-control"
+                placeholder="Ingresa el nombre del ítem"
+                required
+              />
+            </div>
+            <div class="form-group">
+              <label for="description">Descripción</label>
+              <textarea
+                v-model="currentItem.description"
+                id="description"
+                class="form-control"
+                rows="3"
+                placeholder="Ingresa la descripción del ítem"
+                required
+              ></textarea>
+            </div>
+            <div class="form-buttons">
+              <button type="submit" class="btn btn-submit">
+                <i class="fas" :class="isEditing ? 'fa-edit' : 'fa-plus'"></i>
+                {{ isEditing ? 'Guardar Cambios' : 'Crear Ítem' }}
+              </button>
+              <button type="button" @click="cancelCreate" class="btn btn-cancel">
+                <i class="fas fa-times"></i> Cancelar
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
 
-    <div v-if="editingItem">
-      <h3>Editar Ítem</h3>
-      <input v-model="editingItem.name" placeholder="Nuevo Nombre" />
-      <input v-model="editingItem.description" placeholder="Nueva Descripción" />
-      <button @click="updateItem">Actualizar</button>
-      <button @click="cancelEdit">Cancelar</button>
+    <!-- Lista de ítems -->
+    <div class="items-container">
+      <div class="item-card" v-for="item in items" :key="item.id">
+        <div class="card-body">
+          <h5 class="item-title">{{ item.name }}</h5>
+          <p class="item-description">{{ item.description }}</p>
+        </div>
+        <div class="card-footer">
+          <button class="btn btn-edit" @click="editItem(item)">
+            <i class="fas fa-edit"></i> Editar
+          </button>
+          <button class="btn btn-delete" @click="deleteItem(item.id)">
+            <i class="fas fa-trash"></i> Eliminar
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Notificaciones -->
+    <div v-if="alertMessage" class="notification" :class="alertClass">
+      <i :class="alertIcon"></i> {{ alertMessage }}
     </div>
   </div>
 </template>
@@ -34,122 +83,31 @@ export default {
   data() {
     return {
       items: [],
-      newItem: {
+      showCreateForm: false,
+      currentItem: {
+        id: null,
         name: '',
-        description: ''
+        description: '',
       },
-      editingItem: null
+      isEditing: false,
+      alertMessage: '',
+      alertClass: '',
+      alertIcon: '',
     };
   },
-  mounted() {
-    this.fetchItems();
-  },
   methods: {
-    // Obtener la lista de ítems desde la API
     async fetchItems() {
       try {
         const response = await axios.get('http://127.0.0.1:8000/api/items/');
         this.items = response.data;
       } catch (error) {
-        console.error('Hubo un error al obtener los ítems:', error);
+        this.showAlert('Hubo un error al obtener los ítems.', 'error', 'fas fa-exclamation-circle');
       }
     },
-
-    // Crear un nuevo ítem
-    async addItem() {
-      if (!this.newItem.name || !this.newItem.description) {
-        alert('Por favor complete todos los campos.');
-        return;
-      }
-
+    async saveItem() {
       try {
-        const response = await axios.post('http://127.0.0.1:8000/api/items/', this.newItem);
-        this.items.push(response.data);
-        this.newItem.name = '';
-        this.newItem.description = '';
-      } catch (error) {
-        console.error('Hubo un error al agregar el ítem:', error);
-      }
-    },
-
-    // Editar un ítem (selecciona un ítem para editar)
-    editItem(item) {
-      this.editingItem = { ...item };
-    },
-
-    // Actualizar un ítem existente
-    async updateItem() {
-      try {
-        const response = await axios.put(`http://127.0.0.1:8000/api/items/${this.editingItem.id}/`, this.editingItem);
-        const index = this.items.findIndex(item => item.id === this.editingItem.id);
-        this.items[index] = response.data;
-        this.editingItem = null;
-      } catch (error) {
-        console.error('Hubo un error al actualizar el ítem:', error);
-      }
-    },
-
-    // Eliminar un ítem
-    async deleteItem(id) {
-      try {
-        await axios.delete(`http://127.0.0.1:8000/api/items/${id}/`);
-        this.items = this.items.filter(item => item.id !== id);
-      } catch (error) {
-        console.error('Hubo un error al eliminar el ítem:', error);
-      }
-    },
-
-    // Cancelar la edición de un ítem
-    cancelEdit() {
-      this.editingItem = null;
-    }
-  }
-};
-</script>
-
-<style scoped>
-#app {
-  text-align: center;
-}
-
-input {
-  margin: 10px;
-  padding: 5px;
-}
-
-button {
-  padding: 8px 15px;
-  background-color: #4CAF50;
-  color: white;
-  border: none;
-  cursor: pointer;
-}
-
-button:hover {
-  background-color: #45a049;
-}
-
-h2 {
-  margin-top: 20px;
-}
-
-ul {
-  list-style-type: none;
-  padding: 0;
-}
-
-li {
-  margin: 10px 0;
-  padding: 10px;
-  border: 1px solid #ddd;
-  background-color: #f9f9f9;
-}
-
-button {
-  margin: 5px;
-}
-
-h3 {
-  margin-top: 20px;
-}
-</style>
+        if (this.isEditing) {
+          await axios.put(`http://127.0.0.1:8000/api/items/${this.currentItem.id}/`, this.currentItem);
+          this.showAlert('Ítem actualizado correctamente.', 'success', 'fas fa-check-circle');
+        } else {
+          await axios.post('http://127.0.0.1:8000
