@@ -1,11 +1,12 @@
 <template>
   <div class="app-container">
-    <div class="header">
+    <!-- Header -->
+    <header class="header">
       <h1 class="title">Gestión de Ítems</h1>
       <button class="btn btn-create" @click="showCreateForm = true">
         <i class="fas fa-plus"></i> Agregar Ítem
       </button>
-    </div>
+    </header>
 
     <!-- Formulario para agregar/editar ítem -->
     <div v-if="showCreateForm" class="form-container">
@@ -52,7 +53,7 @@
     </div>
 
     <!-- Lista de ítems -->
-    <div class="items-container">
+    <div v-if="items.length > 0" class="items-container">
       <div class="item-card" v-for="item in items" :key="item.id">
         <div class="card-body">
           <h5 class="item-title">{{ item.name }}</h5>
@@ -67,6 +68,9 @@
           </button>
         </div>
       </div>
+    </div>
+    <div v-else class="empty-state">
+      <p>No hay ítems disponibles. ¡Agrega uno nuevo!</p>
     </div>
 
     <!-- Notificaciones -->
@@ -158,50 +162,56 @@ export default {
 
 <style scoped>
 .app-container {
-  background-color: #f4f7fc;
+  background-color: #f4f4f9;
   min-height: 100vh;
+  color: #333;
+  font-family: 'Roboto', sans-serif;
   padding: 20px;
 }
 
 .header {
-  text-align: center;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   margin-bottom: 30px;
 }
 
 .title {
-  font-size: 3rem;
-  color: #6c63ff;
-  margin-bottom: 20px;
+  font-size: 2.5rem;
+  color: #0d47a1;
 }
 
 .btn-create {
-  background: linear-gradient(135deg, #6c63ff, #00bcd4);
+  background-color: #1976d2;
   color: white;
   font-weight: bold;
   padding: 10px 20px;
   border-radius: 5px;
-  border: none;
   font-size: 1rem;
   transition: background 0.3s ease;
+  display: flex;
+  align-items: center;
 }
 
 .btn-create:hover {
-  background: linear-gradient(135deg, #00bcd4, #6c63ff);
+  background-color: #1565c0;
 }
 
 .form-container {
   display: flex;
   justify-content: center;
   align-items: center;
+  margin-top: 20px;
 }
 
 .form-card {
-  background: white;
+  background: #ffffff;
   border-radius: 8px;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
   padding: 30px;
   width: 100%;
-  max-width: 500px;
+  max-width: 600px;
+  margin-top: 20px;
 }
 
 .form-group {
@@ -213,33 +223,36 @@ export default {
   border: 1px solid #ddd;
   padding: 10px;
   width: 100%;
+  background-color: #f9f9f9;
+  color: #333;
 }
 
 .form-buttons {
   display: flex;
+  justify-content: space-between;
   gap: 10px;
 }
 
 .btn-submit {
-  background-color: #4caf50;
+  background-color: #66bb6a;
   color: white;
   font-weight: bold;
-  width: 100%;
-  padding: 12px;
+  padding: 12px 20px;
   border-radius: 5px;
   transition: background-color 0.3s ease;
+  width: 100%;
 }
 
 .btn-submit:hover {
-  background-color: #45a049;
+  background-color: #4caf50;
 }
 
 .btn-cancel {
   background-color: #f44336;
   color: white;
-  width: 100%;
-  padding: 12px;
+  padding: 12px 20px;
   border-radius: 5px;
+  width: 100%;
   transition: background-color 0.3s ease;
 }
 
@@ -251,11 +264,12 @@ export default {
   display: grid;
   gap: 20px;
   grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  margin-top: 40px;
 }
 
 .item-card {
-  background-color: white;
-  border-radius: 10px;
+  background-color: #ffffff;
+  border-radius: 8px;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
   padding: 20px;
   transition: transform 0.3s ease, box-shadow 0.3s ease;
@@ -263,22 +277,23 @@ export default {
 
 .item-card:hover {
   transform: translateY(-5px);
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
 }
 
 .item-title {
-  color: #333;
+  color: #1976d2;
   font-size: 1.25rem;
 }
 
 .item-description {
-  color: #555;
+  color: #777;
 }
 
 .card-footer {
   display: flex;
   justify-content: space-between;
   gap: 10px;
+  margin-top: 10px;
 }
 
 .btn-edit, .btn-delete {
@@ -308,24 +323,41 @@ export default {
   background-color: #d32f2f;
 }
 
-.notification {
-  padding: 15px;
-  border-radius: 5px;
-  margin-top: 20px;
+.empty-state {
   text-align: center;
+  color: #888;
+  font-size: 1.25rem;
+  margin-top: 40px;
+}
+
+.notification {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  padding: 15px;
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  z-index: 999;
 }
 
 .alert-success {
-  background-color: #4caf50;
-  color: white;
+  border-left: 5px solid #66bb6a;
 }
 
 .alert-error {
-  background-color: #f44336;
-  color: white;
+  border-left: 5px solid #f44336;
 }
 
-.alert-icon {
-  margin-right: 10px;
+.notification i {
+  font-size: 1.5rem;
+}
+
+.notification p {
+  margin: 0;
+  font-size: 1rem;
 }
 </style>
